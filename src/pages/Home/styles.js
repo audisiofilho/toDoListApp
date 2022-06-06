@@ -52,27 +52,48 @@ export const ContainerButtons = styled.View`
   padding-right: 40px;
   //margin: 20px;
   flex-direction: row;
-  justify-content: space-between ;
+  justify-content: space-between;
 `;
 export const Button = styled.TouchableOpacity`
-    align-items: center ;
+  align-items: center;
 `;
 export const ContainerIcon = styled.View`
-    width:60px ;
-    height:60px ;
-    background-color: #fff;
-    border-radius: 30px;
-    align-items: center ;
-    justify-content: center ;
+  width: 60px;
+  height: 60px;
+  background-color: #fff;
+  border-radius: 30px;
+  align-items: center;
+  justify-content: center;
 `;
 export const ButtonText = styled.Text`
-    color:#000 ;
-    font-size:15px ;
+  color: #000;
+  font-size: 15px;
 `;
 
 export const List = styled.FlatList`
+  margin-left: 20px;
+  margin-right: 20px;
+  background-color: #fff;
+`;
+
+export const ContainerSwitch = styled.View`
   margin-top: 20px;
   margin-left: 20px;
   margin-right: 20px;
-  background-color: #fff ;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  flex-direction: row ;
+  justify-content: space-around ;
+  background-color: #fff;
 `;
+export const ButtonSwitch = styled.TouchableOpacity`
+  padding: 10px;
+  border-bottom-width: 2px;
+  
+`;
+export const ButtonSwitch2 = styled.TouchableOpacity`
+  padding: 10px;
+  border-bottom-width: 2px;
+  
+`;
+export const SwitchText = styled.Text``;
