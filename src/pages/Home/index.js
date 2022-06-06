@@ -27,14 +27,17 @@ export default function Home() {
     {
       id: 1,
       task: 'Fazer compras no mercado',
+      date: '04/06/22'
     },
     {
       id: 2,
       task: 'Buscar o Julio na escola',
+      date: '04/06/22'
     },
     {
       id: 3,
       task: 'Fazer compras',
+      date: '04/06/22'
     },
   ];
   return (

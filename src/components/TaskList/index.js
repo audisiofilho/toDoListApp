@@ -1,10 +1,24 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import {Container, ButtonTask, TaskText,TaskDate} from './styles';
+
+import Icon from 'react-native-vector-icons/Feather';
 
 export default function TasktList({data}) {
- return (
-   <View>
-       <Text>{data.task}</Text>
-       </View>
+  return (
+    <Container onLongPress={()=>alert('Container')}>
+      <ButtonTask onPress={()=> alert('task')}>
+        <Icon name="square" size={25} color="#000" />
+
+      </ButtonTask>
+
+        <TaskText>
+          {data.task}
+        </TaskText>
+
+        <TaskDate>
+          {data.date}
+        </TaskDate>
+      
+    </Container>
   );
 }

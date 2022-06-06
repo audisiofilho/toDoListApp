@@ -70,4 +70,9 @@ export const ButtonText = styled.Text`
     font-size:15px ;
 `;
 
-export const List = styled.FlatList``;
+export const List = styled.FlatList`
+  margin-top: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+  background-color: #fff ;
+`;
