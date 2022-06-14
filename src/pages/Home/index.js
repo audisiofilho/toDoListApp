@@ -7,6 +7,7 @@ import {
   Text,
   TouchableWithoutFeedback,
   TextInput,
+  Keyboard,
 } from 'react-native';
 import {
   Container,
@@ -38,10 +39,56 @@ export default function Home() {
   const date = new Date().toLocaleDateString();
 
   const [active, setActive] = useState(true);
+  const [dissable, setDissable] = useState(true);
   const [tasks, setTasks] = useState([]);
+  const [taskDesc, setTaskDesc] = useState('');
   const [modalVisible, setmodalVisible] = useState(false);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    async function loadTasks() {
+      const realm = await getRealm();
+      const data = realm.objects('ToDoList');
+      setTasks(data);
+    }
+
+    loadTasks();
+  }, []);
+
+  async function saveTask(data) {
+    const realm = await getRealm();
+
+    const id =
+      realm.objects('ToDoList').sorted('id', true).length > 0
+        ? realm.objects('ToDoList').sorted('id', true)[0].id + 1
+        : 1;
+
+    const dataTask = {
+      id: id,
+      desc: data.desc,
+      complete: false,
+    };
+
+    realm.write(() => {
+      realm.create('ToDoList', dataTask);
+    });
+  }
+
+  async function addTask() {
+    if (taskDesc === '') {
+      alert('Preencha todos os campos!');
+      return;
+    }
+
+    try {
+      const data = {desc: taskDesc};
+      await saveTask(data);
+
+      setTaskDesc('');
+      setmodalVisible(false);
+    } catch (err) {
+      alert(err);
+    }
+  }
 
   return (
     <Container>
@@ -69,9 +116,9 @@ export default function Home() {
           </ContainerIcon>
           <ButtonText>Adicionar</ButtonText>
         </Button>
-        <Button>
+        <Button disabled={dissable} style={{opacity: dissable ? 0.1 : 1}}>
           <ContainerIcon>
-            <Icon name="edit-2" size={25} color="#000" />
+            <Icon name="edit-2" size={25} color="#000"/>
           </ContainerIcon>
           <ButtonText>Editar</ButtonText>
         </Button>
@@ -123,6 +170,7 @@ export default function Home() {
               Criar uma nova tarefa?
             </Text>
             <TextInput
+              onChangeText={text => setTaskDesc(text)}
               placeholder="Tarefa..."
               style={{
                 borderRadius: 5,
@@ -141,7 +189,8 @@ export default function Home() {
                 height: 45,
                 alignItems: 'center',
                 justifyContent: 'center',
-              }}>
+              }}
+              onPress={() => addTask()}>
               <Text
                 style={{
                   fontSize: 19,
@@ -151,8 +200,16 @@ export default function Home() {
                 Criar Tarefa
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={()=> setmodalVisible(false)}>
-              <Text style={{color: '#000', textAlign: 'center', margin: 10, fontSize: 20}}>Voltar</Text>
+            <TouchableOpacity onPress={() => setmodalVisible(false)}>
+              <Text
+                style={{
+                  color: '#000',
+                  textAlign: 'center',
+                  margin: 10,
+                  fontSize: 20,
+                }}>
+                Voltar
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
