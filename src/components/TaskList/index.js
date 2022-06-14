@@ -4,6 +4,7 @@ import {Container, ButtonTask, TaskText,TaskDate} from './styles';
 import Icon from 'react-native-vector-icons/Feather';
 
 export default function TasktList({data, active}) {
+  console.log(data);
   return (
     <Container onLongPress={()=>alert('Container')}>
       <ButtonTask onPress={()=> alert('task')}>
@@ -12,13 +13,9 @@ export default function TasktList({data, active}) {
       </ButtonTask>
 
         <TaskText>
-          {data.task}
+          {data.desc}
         </TaskText>
 
-        <TaskDate>
-          {data.date}
-        </TaskDate>
-      
     </Container>
   );
 }
