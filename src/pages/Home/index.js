@@ -39,6 +39,10 @@ export default function Home() {
   const date = new Date().toLocaleDateString();
 
   const [active, setActive] = useState(true);
+  const [control, setControl] = useState(true);
+  const [complete, setComplete] = useState('0');
+  const [pending, setPending] = useState('0');
+  const [idEdit, setIdEdit] = useState(null);
   const [dissable, setDissable] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [taskDesc, setTaskDesc] = useState('');
@@ -47,12 +51,22 @@ export default function Home() {
   useEffect(() => {
     async function loadTasks() {
       const realm = await getRealm();
-      const data = realm.objects('ToDoList');
+      const pending = realm
+        .objects('ToDoList')
+        .filtered('complete =' + false).length;
+      const complete = realm
+        .objects('ToDoList')
+        .filtered('complete =' + true).length;
+      const data = active
+        ? realm.objects('ToDoList').filtered('complete =' + false)
+        : realm.objects('ToDoList').filtered('complete =' + true);
       setTasks(data);
+      setPending(pending);
+      setComplete(complete);
     }
 
     loadTasks();
-  }, []);
+  }, [control, active]);
 
   async function saveTask(data) {
     const realm = await getRealm();
@@ -83,11 +97,77 @@ export default function Home() {
       const data = {desc: taskDesc};
       await saveTask(data);
 
+      setControl(!control);
       setTaskDesc('');
       setmodalVisible(false);
     } catch (err) {
       alert(err);
     }
+  }
+
+  function editTask(data) {
+    setIdEdit(data.id);
+    setTaskDesc(data.desc);
+    setDissable(false);
+  }
+
+  async function completeTask(data) {
+    if (data.id === null) {
+      return;
+    }
+
+    const realm = await getRealm();
+
+    const response = {
+      id: data.id,
+      complete: true,
+    };
+
+    await realm.write(() => {
+      realm.create('ToDoList', response, 'modified');
+    });
+    setControl(!control);
+    
+  }
+
+  async function addEditTask() {
+    if (idEdit === null) {
+      alert('Você não esta editando nenhum item!');
+      return;
+    }
+
+    const realm = await getRealm();
+
+    const response = {
+      id: idEdit,
+      desc: taskDesc,
+    };
+
+    await realm.write(() => {
+      realm.create('ToDoList', response, 'modified');
+    });
+    setControl(!control);
+    setTaskDesc('');
+    setIdEdit(null);
+    setDissable(true);
+    setmodalVisible(false);
+    Keyboard.dismiss();
+  }
+
+  async function deleteTask() {
+    const realm = await getRealm();
+
+    const ID = idEdit;
+
+    realm.write(() => {
+      if (realm.objects('ToDoList').filtered('id =' + ID).length > 0) {
+        realm.delete(realm.objects('ToDoList').filtered('id =' + ID));
+      }
+    });
+    setIdEdit(null);
+    setTaskDesc('');
+    setControl(!control);
+    setDissable(true);
   }
 
   return (
@@ -101,28 +181,37 @@ export default function Home() {
       <ControlContainer>
         <FieldText>
           <ControlTille>Pendentes:</ControlTille>
-          <ControlNumber></ControlNumber>
+          <ControlNumber>{pending}</ControlNumber>
         </FieldText>
         <FieldText>
           <ControlTille>Concluidas:</ControlTille>
-          <ControlNumber></ControlNumber>
+          <ControlNumber>{complete}</ControlNumber>
         </FieldText>
       </ControlContainer>
 
       <ContainerButtons>
-        <Button onPress={() => setmodalVisible(true)}>
+        <Button
+          onPress={() => setmodalVisible(true)}
+          disabled={!dissable}
+          style={{opacity: !dissable ? 0.1 : 1}}>
           <ContainerIcon>
             <Icon name="plus" size={25} color="#000" />
           </ContainerIcon>
           <ButtonText>Adicionar</ButtonText>
         </Button>
-        <Button disabled={dissable} style={{opacity: dissable ? 0.1 : 1}}>
+        <Button
+          onPress={() => setmodalVisible(true)}
+          disabled={dissable}
+          style={{opacity: dissable ? 0.1 : 1}}>
           <ContainerIcon>
-            <Icon name="edit-2" size={25} color="#000"/>
+            <Icon name="edit-2" size={25} color="#000" />
           </ContainerIcon>
           <ButtonText>Editar</ButtonText>
         </Button>
-        <Button>
+        <Button
+          onPress={() => deleteTask()}
+          disabled={dissable}
+          style={{opacity: dissable ? 0.1 : 1}}>
           <ContainerIcon>
             <Icon name="trash" size={25} color="#000" />
           </ContainerIcon>
@@ -151,8 +240,11 @@ export default function Home() {
         data={tasks}
         keyExtractor={item => String(item.id)}
         showsVerticalScrollIndicator={false}
-        renderItem={({item}) => <TaskList data={item} active={active} />}
+        renderItem={({item}) => (
+          <TaskList data={item} active={active} edit={editTask} complete={completeTask} />
+        )}
       />
+
       <Modal visible={modalVisible} animationType="fade" transparent={true}>
         <View style={{flex: 1, backgroundColor: 'rgba(34,34,34,0.4)'}}>
           <TouchableWithoutFeedback onPress={() => setmodalVisible(false)}>
@@ -167,10 +259,13 @@ export default function Home() {
                 fontSize: 20,
                 color: '#000',
               }}>
-              Criar uma nova tarefa?
+              {idEdit !== null
+                ? 'Editar uma Tarefa?'
+                : 'Criar uma nova Tarefa?'}
             </Text>
             <TextInput
               onChangeText={text => setTaskDesc(text)}
+              value={taskDesc}
               placeholder="Tarefa..."
               style={{
                 borderRadius: 5,
@@ -190,17 +285,17 @@ export default function Home() {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
-              onPress={() => addTask()}>
+              onPress={() => (idEdit !== null ? addEditTask() : addTask())}>
               <Text
                 style={{
                   fontSize: 19,
                   fontWeight: 'bold',
                   color: '#fff',
                 }}>
-                Criar Tarefa
+                {idEdit !== null ? 'Editar Tarefa' : 'Criar Tarefa'}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setmodalVisible(false)}>
+            <TouchableOpacity onPress={() => {setmodalVisible(false)}}>
               <Text
                 style={{
                   color: '#000',
